@@ -16,41 +16,31 @@ chrome.notifications.onClicked.addListener(function (id, index) {
 
 var notificationId = 1337;
 
+function handleNotificationCheck(data, type, typeString) {
+    if (data.find(".notification").length > 0) {
+        var notification = data.find(".notification");
+        var newCount = notification.text();
+
+        chrome.notifications.create(notificationId + "-" + type, {
+            type: "basic",
+            title: typeString + " update",
+            iconUrl: "http://csgolounge.com/img/my_" + type + "s.png",
+            isClickable: true,
+            message: newCount == 1 ? "You have 1 new comment on your " + type + "s" : "You have " + newCount + " new comments on your " + type + "s"
+        }, function () {
+            notificationId++;
+        });
+    }
+}
+
+
 function checkForNotifications() {
     $.get("http://csgolounge.com/", function (data) {
-        data = $(data);
-        var trades = data.find('a[href$="mytrades"]:first');
-        var offers = data.find('a[href$="myoffers"]:first');
+        var trades = $(data).find('a[href$="mytrades"]:first');
+        var offers = $(data).find('a[href$="myoffers"]:first');
 
-        if (trades.find(".notification").length > 0) {
-            var notification = trades.find(".notification");
-            var newCount = notification.text();
-
-            chrome.notifications.create(notificationId + "-trade", {
-                type: "basic",
-                title: "Trade update",
-                iconUrl: "http://csgolounge.com/img/my_trades.png",
-                isClickable: true,
-                message: newCount == 1 ? "You have 1 new comment on your trades" : "You have " + newCount + " new comments on your trades"
-            }, function () {
-                notificationId++;
-            });
-        }
-        if (offers.find(".notification").length > 0) {
-            var notification = offers.find(".notification");
-            var newCount = notification.text();
-
-            chrome.notifications.create(notificationId + "-offer", {
-                type: "basic",
-                title: "Offer update",
-                isClickable: true,
-                iconUrl: "http://csgolounge.com/img/my_offers.png",
-                message: newCount == 1 ? "You have 1 new comment on your offers" : "You have " + newCount + " new comments on your offers"
-            }, function () {
-                notificationId++;
-            });
-        }
-
+        handleNotificationCheck(trades, "trade", "Trade");
+        handleNotificationCheck(offers, "offer", "Offer");
     });
     setTimeout(checkForNotifications, 15000);
 }
